@@ -95,6 +95,16 @@ func realMain() int {
 	return wrappedMain()
 }
 
+func init() {
+	Ui = &cli.PrefixedUi{
+		AskPrefix:    OutputPrefix,
+		OutputPrefix: OutputPrefix,
+		InfoPrefix:   OutputPrefix,
+		ErrorPrefix:  ErrorPrefix,
+		Ui:           &cli.BasicUi{Writer: os.Stdout},
+	}
+}
+
 func wrappedMain() int {
 	// We always need to close the DebugInfo before we exit.
 	defer terraform.CloseDebugInfo()
@@ -125,6 +135,11 @@ func wrappedMain() int {
 		}
 
 		config = *config.Merge(usrcfg)
+	}
+
+	// In tests, Commands may already be set to provide mock commands
+	if Commands == nil {
+		initCommands(&config)
 	}
 
 	// Run checkpoint
